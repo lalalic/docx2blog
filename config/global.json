@@ -1,0 +1,11 @@
+{
+    "applications": {
+        "docx2blog": {
+            "applicationId": "2MuZl7lWDEAymrX2KBjBcZLekqR7faDo1ffSaE8o", 
+            "masterKey": "hgoQJvNkm8gXLxcoCEjYaISPEY9jytHkvyKIOyps"
+        }
+    }, 
+    "global": {
+        "parseVersion": "1.3.3"
+    }
+}
