@@ -1,19 +1,8 @@
-docx2html
+docx2blog
 =========
-a javascript converter from docx to html
+a docx blog system
 
 #install
-	$ npm install docx2html
+	$ npm install docx2blog
 
-#API
-It will convert into a div in body with following code.
-
-```html
-<head>
-	<script src="../dist/docx2html.js"></script>
-</head>
-<body>
-	<input type="file" style="position:absolute;top:0" onchange="require('docx2html')(this.files[0])">
-</body>
-```
 
