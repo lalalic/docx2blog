@@ -12,6 +12,7 @@ function saveFile(name,file){
 				},
 			body:file
 		}).then(function(res){
+			console.log('saved '+name)
 			return res.data
 		})
 };
@@ -34,7 +35,7 @@ express()
 			var promises=[], images={}, savedImages=[], hasImage=false;
 			zip.folder('images').filter(function(path, file){
 				promises.push(
-					saveFile(path+'.jpg',file.asArrayBuffer())
+					saveFile(path+'.jpg',file.asNodeBuffer())
 						.then(function(f){images[path]=f})
 						)
 				hasImage=true
