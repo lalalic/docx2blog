@@ -28,10 +28,11 @@
 			}
 			function serverSave(data,headers){
 				var x = new XMLHttpRequest(), p=new $.Deferred();
-				x.open("POST","/", true)
-				
 				x.onreadystatechange=function(e){
 					switch(x.readyState){
+					csse 1:
+						Object.keys(headers).forEach(function(k){x.setRequestHeader(k,headers[k])})	
+						break
 					case 4:
 						switch(x.status){
 						case 200:
@@ -43,21 +44,29 @@
 					default:
 					}
 				}
+				x.open("POST","/", true)
 				x.send(data)
 				return p;
 			}
 			function save(){
+				$Id('save').classList.add('doing');
 				parsed.save({
 					extendScript:'/js/extend.js',
 					saveImage:function(data, docProps){
-						return serverSave(data)
+						return serverSave(data,{'content-type':'image/jpeg'})
 					},
 					saveHtml: function(data, docProps){
-						return serverSave(data, {props:JSON.stringify(docProps)})
+						return serverSave(data, {'content-type':'text/html',props:JSON.stringify(docProps)})
 					}
-				})
-				
-				$Id('save').classList.add('doing')
+				}).then(
+					function(post){
+						$Id('save').classList.remove('doing')
+						alert('saved')
+					},
+					function(error){
+						$Id('save').classList.remove('doing')
+						alert(error)
+					})
 			}
 			
 			

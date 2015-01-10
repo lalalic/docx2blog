@@ -1,3 +1,16 @@
+var a={},  
+	TA=require('cloud/typedarray');
+(function(global,Buffer,ArrayBuffer,
+	DataView,
+	Float32Array,
+	Float64Array,
+	Int8Array,
+	Int16Array,
+	Int32Array,
+	Uint8Array,
+	Uint8ClampedArray,
+	Uint16Array,
+	Uint32Array){	
 /*!
 
 JSZip - A Javascript class for generating and reading zip files
@@ -496,7 +509,7 @@ Usage:
  * @param {Object=} options the options for creating this objects (optional).
  */
 function JSZip(data, options) {
-    // if this constructor isÂ used withoutÂ `new`, itÂ adds `new` beforeÂ itself:
+    // if this constructor is used without `new`, it adds `new` before itself:
     if(!(this instanceof JSZip)) return new JSZip(data, options);
 
     // object containing the files :
@@ -8980,3 +8993,16 @@ module.exports = ZStream;
 },{}]},{},[9])
 (9)
 });
+})(a,Buffer,TA.ArrayBuffer,
+TA.DataView,
+TA.Float32Array,
+TA.Float64Array,
+TA.Int8Array,
+TA.Int16Array,
+TA.Int32Array,
+TA.Uint8Array,
+TA.Uint8ClampedArray,
+TA.Uint16Array,
+TA.Uint32Array);
+
+var exports=a.JSZip;
