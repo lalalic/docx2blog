@@ -26,31 +26,44 @@
 			function $Id(id){
 				return document.getElementById(id)
 			}
-			function save(){
-				var x = new XMLHttpRequest()
+			function serverSave(data,headers){
+				var x = new XMLHttpRequest(), p=new $.Deferred();
 				x.open("POST","/", true)
+				
 				x.onreadystatechange=function(e){
 					switch(x.readyState){
 					case 4:
-						$Id('save').classList.remove('doing')
 						switch(x.status){
 						case 200:
+							p.resolve(x.responseText)
 							break
 						default:
-							alert(e.responseText)
+							p.reject(new Error(x.responseText))
 						}
 					default:
-					
 					}
-					
 				}
-				x.send(parsed)
+				x.send(data)
+				return p;
+			}
+			function save(){
+				parsed.save({
+					extendScript:'/js/extend.js',
+					saveImage:function(data, docProps){
+						return serverSave(data)
+					},
+					saveHtml: function(data, docProps){
+						return serverSave(data, {props:JSON.stringify(docProps)})
+					}
+				})
+				
 				$Id('save').classList.add('doing')
 			}
 			
+			
 			function load(){
 				require('docx2html')(this.files[0]).then(function(doc){
-					parsed=doc.asZip({extendScript:'/js/extend.js'}).generate({type:'blob'})
+					parsed=doc
 				}); 
 				this.value=''
 			}
