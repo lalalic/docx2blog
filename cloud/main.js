@@ -1,66 +1,68 @@
 var express=require('express');
+var parseExpressRawBody = require('parse-express-raw-body');
+var config=require('cloud/config');
 
-function saveFile(file,name,headers){
-	return Parse.Cloud.httpRequest({
-			url:'https://api.parse.com/1/files/'+name,
-			method:'post',
-			headers:headers,
-			body:file
-		}).then(function(res){
-			console.log('saved '+headers['content-type'])
-			return res.data
-		})
-};
-
-express()
-	.post('/', function(req, res) {
-		var data=[],headers={},name, isImage=true;
-		req.on('end', function(){
-			console.log('data end');
-			var props=req.headers['props'];
-			props && (props=JSON.parse(props));
-			switch(req.headers['content-type'].split('/')[0]){
-			case 'image':
-				data=require('buffer').Buffer.concat(data)
-				headers['content-type']='image/jpeg'
-				name='a.jpg';
-				break
-			case 'text':
-				isImage=false
-				data=data.join('')
-				headers['content-type']='text/html'
-				name=props.name.replace(/\.docx$/i,'.html')
+var app=express();
+app.use(express.bodyParser())
+app.use(parseExpressRawBody())
+app.post('/', function(req, res) {
+		(function(){
+			switch(typeof req.body.content){
+			case 'undefined':
+				return Parse.Cloud.httpRequest({
+						url:'https://api.parse.com/1/files/a.jpg',
+						method:'post',
+						headers:{
+							"X-Parse-Application-Id":config.appId,
+							"X-Parse-REST-API-Key":config.restKey,
+						},
+						body:req.body
+					}).then(function(r){
+						var Image=Parse.Object.extend("image")
+						var image=new Image({crc32:req.get('crc32')})
+						var data=r.data
+						data.__type="File"
+						image.set('url', data.url)
+						image.set('file',data)
+						image.save()						
+						return r.data
+					})
+			case 'string':
+				var Post=Parse.Object.extend("post")
+				return (new Parse.Query(Post))
+					.equalTo('name',req.body.name)
+					.first()
+					.then(function(post){
+						post ? post.set(req.body,{silent:true}) : (post=new Post(req.body));
+						return post.save()
+							.then(function(){return 'ok'})
+					})
 				break
 			default:
-				
+				return Parse.Promise.error("Unsupported content")
 			}
-			
-			saveFile(data,name,headers)
-			.then(function(file){
-				if(isImage){
-					return file
-				}else{
-					var Post=Parse.Object.extend("post")
-					return (new Parse.Query(Post)).equalTo('name',props.name)
-						.first(function(post){
-							post ? post.set(props,{silent:true}) : (post=new Post(props));
-							post.set('url', file.url);
-							return post.save().then(function(){return file})
-						})
-				}
-			})
-			.then(
-				function(file){
-					res.send(file.url)
-				},
-				function(error){
-					res.send(400,error)
-				})
-		})
-		
-		req.on('data', function(chunk){
-			data.push(chunk)
-		})
+		})().then(function(a){res.send(a)},function(error){res.send(400,error)})
 	})
-	.listen()
-;
+	.get('/uploadedImages', function(req, res){
+		(new Parse.Query(Parse.Object.extend("image")))
+			.select(['crc32','url'])
+			.find()
+			.then(function(images){
+				res.send(images||[])
+			},function(e){
+				res.send(400,e)
+			})
+	})
+	.get('/', function(req,res){
+		var Post=Parse.Object.extend("post");
+		(new Parse.Query(Post))
+			.first()
+			.then(function(p){
+				res.set('Content-Type','text/html')
+				res.send(p.get('content'))
+			},function(error){
+				res.send(400,error)
+			})
+	})
+
+	.listen();

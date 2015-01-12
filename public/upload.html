@@ -26,17 +26,20 @@
 			function $Id(id){
 				return document.getElementById(id)
 			}
-			function serverSave(data,headers){
+			function ajax(data,headers,method,url){
+				headers=headers||{};
+				method=method||'post';
+				url=url||'/';
 				var x = new XMLHttpRequest(), p=new $.Deferred();
 				x.onreadystatechange=function(e){
 					switch(x.readyState){
-					csse 1:
+					case 1:
 						Object.keys(headers).forEach(function(k){x.setRequestHeader(k,headers[k])})	
 						break
 					case 4:
 						switch(x.status){
 						case 200:
-							p.resolve(x.responseText)
+							p.resolve(x.getResponseHeader('content-type').indexOf('json')!=-1 ? JSON.parse(x.responseText) : x.responseText)
 							break
 						default:
 							p.reject(new Error(x.responseText))
@@ -44,19 +47,40 @@
 					default:
 					}
 				}
-				x.open("POST","/", true)
+				x.open(method,url, true)
 				x.send(data)
 				return p;
 			}
+			
+			function getUploadedImages(){
+				if(window.uploadedImages)
+					return $.Deferred.as(window.uploadedImages)
+				return ajax(null,{},'get','/uploadedImages')
+					.then(function(data){
+						data.forEach(function(a){
+							this[a.crc32]=a.url
+						},window.uploadedImages={})
+						return window.uploadedImages
+					})
+			}
+			
 			function save(){
 				$Id('save').classList.add('doing');
 				parsed.save({
 					extendScript:'/js/extend.js',
 					saveImage:function(data, docProps){
-						return serverSave(data,{'content-type':'image/jpeg'})
+						return getUploadedImages()
+						.then(function(uploadedImages){
+							if(uploadedImages[data.crc32])
+								return uploadedImages[data.crc32]
+							return ajax(data,{'content-type':'image/jpeg','crc32':data.crc32})
+								.then(function(file){
+									return window.uploadedImages[data.crc32]=file.url
+								})
+						})
 					},
 					saveHtml: function(data, docProps){
-						return serverSave(data, {'content-type':'text/html',props:JSON.stringify(docProps)})
+						return ajax(JSON.stringify($.extend({content:data},docProps)), {'content-type':'application/json'})
 					}
 				}).then(
 					function(post){
