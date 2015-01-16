@@ -22,7 +22,7 @@
 	},
 	"scripts": {
 		"bupload": "browserify lib/upload.js -o site/js/upload.js | uglifyjs site/js/upload.js -o site/js/upload.min.js",
-		"bextend": "browserify lib/extend.js -o site/js/extend.js | uglifyjs site/js/extend.js -o site/js/extend.min.js",
+		"bcomponentsUI": "browserify lib/componentsUI.js -o site/js/componentsUI.js | uglifyjs site/js/componentsUI.js -o site/js/componentsUI.min.js",
 		"parse.com": ""
 	}
 }
