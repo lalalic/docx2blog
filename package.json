@@ -6,9 +6,7 @@
 		"name": "Raymond Li",
 		"email": "lalalic@139.com"
 	},
-	"keywords": ["docx",
-	"converter",
-	"blog"],
+	"keywords": ["docx","converter","blog"],
 	"license": "MIT",
 	"readme": "README.md",
 	"repository": {
@@ -16,16 +14,15 @@
 		"url": "https://github.com/lalalic/docx2blog.git"
 	},
 	"devDependencies": {
-		"docx2html": "latest",
-		"express": "3.1.0",
-		"jszip": "latest",
-		"typedarray":"latest"
+		"adeamdify":"latest"
 	},
 	"dependencies": {
-		
+		"docx2html": "latest",
+		"apromise": "latest"
 	},
 	"scripts": {
-		"start": "node --debug cloud/main",
-		"debug": "node-inspector"	
+		"bupload": "browserify lib/upload.js -o site/js/upload.js | uglifyjs site/js/upload.js -o site/js/upload.min.js",
+		"bextend": "browserify lib/extend.js -o site/js/extend.js | uglifyjs site/js/extend.js -o site/js/extend.min.js",
+		"parse.com": ""
 	}
 }

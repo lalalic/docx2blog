@@ -2,6 +2,10 @@ var express=require('express');
 var parseExpressRawBody = require('parse-express-raw-body');
 var config=require('cloud/config');
 
+function getPostName(req){
+	return decodeURI(req.get('Referrer').split('/').pop().replace(/\.html$/,''));
+}
+
 var app=express();
 app.use(express.bodyParser())
 app.use(parseExpressRawBody())
@@ -28,7 +32,7 @@ app.post('/', function(req, res) {
 						return r.data
 					})
 			case 'string':
-				var Post=Parse.Object.extend("post")
+				var Post=Parse.Object.extend("post");
 				return (new Parse.Query(Post))
 					.equalTo('name',req.body.name)
 					.first()
@@ -53,16 +57,58 @@ app.post('/', function(req, res) {
 				res.send(400,e)
 			})
 	})
-	.get('/', function(req,res){
-		var Post=Parse.Object.extend("post");
-		(new Parse.Query(Post))
+	.get('/(:title.html)?', function(req,res){
+		var Post=Parse.Object.extend("post"),
+			q=new Parse.Query(Post);
+		req.params.title && q.equalTo('name',decodeURI(req.params.title));
+		q.select(['content'])
 			.first()
 			.then(function(p){
-				res.set('Content-Type','text/html')
-				res.send(p.get('content'))
-			},function(error){
-				res.send(400,error)
+				if(p){
+					res.set('Content-Type','text/html')
+					res.send(p.get('content'))
+				}else
+					res.send(404)
+			}, function(){
+				res.send(404)
 			})
 	})
-
+	.get('/info',function(req,res){
+		var Post=Parse.Object.extend("post"),
+			q=new Parse.Query(Post);
+		q.select(['name','keywords'])
+			.find()
+			.then(function(posts){
+				res.send(posts||[])
+			},function(e){
+				res.send(400,e)
+			})
+	})
+	.get('/comment', function(req, res){
+		var name=getPostName(req)
+		var Post=Parse.Object.extend("post"),
+			q=new Parse.Query(Post);
+		q.equalTo('name',name)
+			.select(['comment'])
+			.first()
+			.then(function(p){
+				res.send(p && p.get('comment')||[])
+			}, function(){
+				res.send([])
+			})
+	})
+	.post('/comment', function(req,res){
+		var name=getPostName(req)
+		var Post=Parse.Object.extend("post"),
+			q=new Parse.Query(Post);
+		q.equalTo('name',name)
+			.first()
+			.then(function(p){
+				if(p){
+					p.add('comment',req.body)
+					return p.save()
+				}else
+					return new Error('no post named : '+name)
+			}).then(function(){res.send('ok')},function(e){res.send(400,e)})
+	})
 	.listen();

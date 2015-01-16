@@ -6,3 +6,5 @@ node_modules
 parser
 
 cloud/config.js
+config
+public
